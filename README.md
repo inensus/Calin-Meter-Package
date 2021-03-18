@@ -1,4 +1,4 @@
-# StronMeter Package
+# CalinMeter Package
 
 Calin API integration for Micropowermanager
 
