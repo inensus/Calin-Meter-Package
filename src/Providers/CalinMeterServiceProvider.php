@@ -8,9 +8,11 @@ use App\Models\Transaction\Transaction;
 use GuzzleHttp\Client;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Inensus\CalinMeter\CalinMeterApi;
 use Inensus\CalinMeter\Console\Commands\InstallPackage;
+use Inensus\CalinMeter\Console\Commands\UpdatePackage;
 use Inensus\CalinMeter\Helpers\ApiHelpers;
 use Inensus\CalinMeter\Http\Requests\CalinMeterApiRequests;
 use Inensus\CalinMeter\Models\CalinCredential;
@@ -27,7 +29,7 @@ class CalinMeterServiceProvider extends ServiceProvider
             $this->publishConfigFiles();
             $this->publishVueFiles();
             $this->publishMigrations($filesystem);
-            $this->commands([InstallPackage::class]);
+            $this->commands([InstallPackage::class,UpdatePackage::class]);
         }
     }
 
@@ -36,19 +38,7 @@ class CalinMeterServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../../config/calin-meter.php', 'calin-meter');
         $this->app->register(EventServiceProvider::class);
         $this->app->register(ObserverServiceProvider::class);
-        $this->app->bind('CalinMeterApi', function () {
-            $client = new Client();
-            $meterParameter = new MeterParameter();
-            $transaction = new Transaction();
-            $calinTransaction = new CalinTransaction();
-            $mainSettings = new MainSettings();
-            $calinCredential = new CalinCredential();
-            $manufacturer = new Manufacturer();
-            $apiHelpers = new ApiHelpers($manufacturer);
-            $apiRequests = new CalinMeterApiRequests($client, $apiHelpers, $calinCredential);
-            return new CalinMeterApi($client, $meterParameter, $calinTransaction, $transaction, $mainSettings,
-                $calinCredential, $apiRequests, $apiHelpers);
-        });
+        $this->app->bind('CalinMeterApi',CalinMeterApi::class);
     }
 
     public function publishConfigFiles()
@@ -73,11 +63,20 @@ class CalinMeterServiceProvider extends ServiceProvider
         ], 'migrations');
     }
 
+
     protected function getMigrationFileName(Filesystem $filesystem): string
     {
         $timestamp = date('Y_m_d_His');
         return Collection::make($this->app->databasePath() . DIRECTORY_SEPARATOR . 'migrations' . DIRECTORY_SEPARATOR)
             ->flatMap(function ($path) use ($filesystem) {
+                if (count($filesystem->glob($path . '*_create_calin_tables.php'))) {
+                    $file = $filesystem->glob($path . '*_create_calin_tables.php')[0];
+
+                    file_put_contents($file, file_get_contents(__DIR__ . '/../../database/migrations/create_calin_tables.php.stub'));
+                    DB::table('migrations')
+                        ->where('migration',substr(explode("/migrations/", $file)[1], 0, -4))
+                        ->delete();
+                }
                 return $filesystem->glob($path . '*_create_calin_tables.php');
             })->push($this->app->databasePath() . "/migrations/{$timestamp}_create_calin_tables.php")
             ->first();
