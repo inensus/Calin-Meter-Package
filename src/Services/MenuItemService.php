@@ -7,21 +7,8 @@ use App\Models\MenuItems;
 
 class MenuItemService
 {
-
-    private $menuItems;
-
-    public function __construct(MenuItems $menuItems)
-    {
-        $this->menuItems = $menuItems;
-    }
-
     public function createMenuItems()
     {
-        $menuItem = $this->menuItems->newQuery()->where('name', 'Calin Meter')->first();
-        if ($menuItem) {
-            return [];
-        }
-
         $menuItem = [
             'name' =>'Calin Meter',
             'url_slug' =>'',
