@@ -37,7 +37,7 @@ class UpdatePackage extends Command
 
         $this->info('Copying migrations\n');
         $this->call('vendor:publish', [
-            '--provider' => "Inensus\CalinMeter\Providers\ServiceProvider",
+            '--provider' => "Inensus\CalinMeter\Providers\CalinMeterServiceProvider",
             '--tag' => "migrations"
         ]);
 
@@ -48,7 +48,7 @@ class UpdatePackage extends Command
 
         $this->info('Copying vue files\n');
         $this->call('vendor:publish', [
-            '--provider' => "Inensus\CalinMeter\Providers\ServiceProvider",
+            '--provider' => "Inensus\CalinMeter\Providers\CalinMeterServiceProvider",
             '--tag' => "vue-components"
         ]);
 
