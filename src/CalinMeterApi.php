@@ -54,7 +54,7 @@ class CalinMeterApi implements IManufacturerAPI
     {
         $meterParameter = $transactionContainer->meterParameter;
         $transactionContainer->chargedEnergy += $transactionContainer->amount /
-            ($meterParameter->tariff->total_price / 100)*10000;
+            ($meterParameter->tariff->total_price / 100);
 
         Log::debug('ENERGY TO BE CHARGED float ' . (float)$transactionContainer->chargedEnergy .
             ' Manufacturer => CalinMeterApi');
